@@ -131,3 +131,4 @@ dmypy.json
 ##to be ignored:
 papers/
 kbgen/
+.DS_Store
