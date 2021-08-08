@@ -131,4 +131,5 @@ dmypy.json
 ##to be ignored:
 papers/
 kbgen/
+global_graph_curvature/
 .DS_Store

@@ -1,0 +1,10 @@
+networkx
+numpy
+matplotlib
+numpy
+cmake
+cython
+networkit
+POT
+python-louvain
+GraphRicciCurvature
