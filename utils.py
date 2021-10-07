@@ -101,7 +101,7 @@ def get_star_graph_dataframe():
 
 def get_scale_free_dataframe():
     big_list = []
-    beta_list =beta_list = np.linspace(0,1,10,endpoint=False)
+    beta_list = np.linspace(0,1,10,endpoint=False)
     beta_list = np.delete(beta_list,[0])
     for i in [100, 1000, 10000]:
         for j in beta_list:
@@ -121,9 +121,12 @@ def get_bipartite_dataframe():
 
 def get_dag_dataframe():
     big_list = []
+    p_list = np.linspace(0,1,10,endpoint=False)
+    p_list = np.delete(p_list,[0])
     for i in [10, 100, 1000, 2000]:
-        big_list.append([i, 0, 0, 0])
-    df = pd.DataFrame(big_list, columns=['number of nodes','ollivier','forman','sectional'])
+        for j in p_list:
+            big_list.append([i, j, 0, 0, 0])
+    df = pd.DataFrame(big_list, columns=['number of nodes','p','ollivier','forman','sectional'])
     return df
 
 def from_multigraph_to_graph(M):

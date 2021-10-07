@@ -133,3 +133,6 @@ papers/
 kbgen/
 global_graph_curvature/
 .DS_Store
+Figures/
+Results/
+Scale_Free/

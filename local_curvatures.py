@@ -218,32 +218,49 @@ if __name__ == '__main__':
         for index, row in df.iterrows():
             beta = row['beta']
             alpha = gamma = row['alpha gamma']
-            print(f'{index+1}/{len(df.index)}')
-            G = nx.scale_free_graph(row['number of nodes'], alpha=alpha,beta=beta,gamma=gamma,seed=args.seed)
-            D = from_multigraph_to_graph(G)
-            U = D.to_undirected()
-            if D.order()<=500:
-                plt.figure()
-                plt.title(f'Scale Free with Size {D.order()} and Beta {beta}')
-                nx.draw(D, node_size=50)
-                plt.savefig(f'Figures/Scale_Free/Scale Free with Size {D.order()} and Beta {beta}.png')
-            print(f'Generated Scale Free, Size: {D.order()} and Beta {beta}')
+            print(f'{index+1}/{len(df.index)} rows')
+            ollivier_list = []
+            forman_list = []
+            sectional_list = []
+            for i in range(args.runs):
+                print(f'{i+1}/{args.runs} completed')
+                G = nx.scale_free_graph(row['number of nodes'], alpha=alpha,beta=beta,gamma=gamma,seed=args.seed)
+                D = from_multigraph_to_graph(G)
+                U = D.to_undirected()
+                if D.order()<=500 and i == 0:
+                    plt.figure()
+                    plt.title(f'Scale Free with Size {D.order()} and Beta {beta}')
+                    nx.draw(D, node_size=50)
+                    plt.savefig(f'Figures/Scale_Free/Scale Free with Size {D.order()} and Beta {beta}.png')
+                print(f'Generated Scale Free, Size: {D.order()} and Beta {beta}')
 
-            ##  Calculate the local curvatures
+                ##  Calculate the local curvatures
 
-            ## to do: scale_free_graph is MultiDiGraph and that is not compatible with get_ollivier_curvature
-            ollivier = get_ollivier_curvature(D)
-            df.loc[index, 'ollivier']=ollivier
-            print("ollivier: ", ollivier)
-            forman = get_forman_curvature(D)
-            df.loc[index, 'forman']=forman
-            print("forman: ", forman)
-            #   Sectional Curvature estimation based on our implementation for HyperKGQA
-            sectional, _ = sectional_curvature(U)
-            df.loc[index, 'sectional']=sectional
-            print("sectional: ", sectional)
+                ## to do: scale_free_graph is MultiDiGraph and that is not compatible with get_ollivier_curvature
+                ollivier = get_ollivier_curvature(D)
+                print("ollivier: ", ollivier)
+                ollivier_list.append(ollivier)
+                if i == args.runs-1:
+                    ollivier_avg = np.mean(np.array(ollivier_list))
+                    df.loc[index, 'ollivier']=ollivier_avg
+                    print("Average ollivier: ", ollivier_avg)
+                forman = get_forman_curvature(D)
+                print("forman: ", forman)
+                forman_list.append(forman)
+                if i == args.runs-1:
+                    forman_avg = np.mean(np.array(forman_list))
+                    df.loc[index, 'forman']=forman_avg
+                    print("Average forman: ", forman_avg)
+                #   Sectional Curvature estimation based on our implementation for HyperKGQA
+                sectional, _ = sectional_curvature(U)
+                print("sectional: ", sectional)
+                sectional_list.append(sectional)
+                if i == args.runs-1:
+                    sectional_avg = np.mean(np.array(sectional_list))
+                    df.loc[index, 'sectional']=sectional_avg
+                    print("Average sectional: ", sectional_avg)
         df.to_csv('Results/Scale_Free/scale_free_curvature.csv', index=False)
-    
+
     if 'bipartite' in args.nargs or 'all' in args.nargs:
         df = get_bipartite_dataframe()
         for index, row in df.iterrows():
@@ -272,25 +289,43 @@ if __name__ == '__main__':
     if 'dag' in args.nargs or 'all' in args.nargs:
         df = get_dag_dataframe()
         for index, row in df.iterrows():
-            print(f'{index+1}/{len(df.index)}')
-            G = get_random_dag(row['number of nodes'], seed = args.seed)
-            U = G.to_undirected()
-            if U.order()<=500:
-                plt.figure()
-                plt.title(f'DAG with Size {G.order()}')
-                nx.draw(G, node_size=50)
-                plt.savefig(f'Figures/DAG/DAG with Size {G.order()}')
-            print(f'Generated DAG, Size: {G.order()}')
-            ##  Calculate the local curvatures
-            ollivier = get_ollivier_curvature(G)
-            df.loc[index, 'ollivier']=ollivier
-            print("ollivier: ", ollivier)
-            forman = get_forman_curvature(G)
-            df.loc[index, 'forman']=forman
-            print("forman: ", forman)
-            #   Sectional Curvature estimation based on our implementation for HyperKGQA
-            sectional, _ = sectional_curvature(U)
-            df.loc[index, 'sectional']=sectional
-            print("sectional: ", sectional)
+            p = row['p']
+            print(f'{index+1}/{len(df.index)} rows')
+            ollivier_list = []
+            forman_list = []
+            sectional_list = []
+            for i in range(args.runs):
+                print(f'{i+1}/{args.runs} completed')
+                G = get_random_dag(row['number of nodes'], seed = args.seed)
+                U = G.to_undirected()
+                if U.order()<=500 and i==0:
+                    plt.figure()
+                    plt.title(f'DAG with Size {G.order()} and p {p}')
+                    nx.draw(G, node_size=50)
+                    plt.savefig(f'Figures/DAG/DAG with Size {G.order()} and p {p}.png')
+                print(f'Generated DAG, Size: {G.order()}')
+                ##  Calculate the local curvatures
+                ollivier = get_ollivier_curvature(G)
+                print("Average ollivier: ", ollivier)
+                ollivier_list.append(ollivier)
+                if i == args.runs-1:
+                    ollivier_avg = np.mean(np.array(ollivier_list))
+                    df.loc[index, 'ollivier']=ollivier_avg
+                    print("ollivier: ", ollivier_avg)
+                forman = get_forman_curvature(G)
+                print("forman: ", forman)
+                forman_list.append(forman)
+                if i == args.runs-1:
+                    forman_avg = np.mean(np.array(forman_list))
+                    df.loc[index, 'forman']=forman_avg
+                    print("Average forman: ", forman_avg)
+                #   Sectional Curvature estimation based on our implementation for HyperKGQA
+                sectional, _ = sectional_curvature(U)
+                print("sectional: ", sectional)
+                sectional_list.append(sectional)
+                if i == args.runs-1:
+                    sectional_avg = np.mean(np.array(sectional_list))
+                    df.loc[index, 'sectional']=sectional_avg
+                    print("Average sectional: ", sectional_avg)
         df.to_csv('Results/DAG/dag_curvature.csv', index=False)
 
