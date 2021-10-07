@@ -1,7 +1,7 @@
 import networkx as nx
 import random
-
-
+import pandas as pd
+import numpy as np
 """
 retrieved from: Aug 2nd 2021
 https://newbedev.com/can-one-get-hierarchical-graphs-from-networkx-with-python-3
@@ -71,3 +71,67 @@ def hierarchy_pos(G, root=None, width=1., vert_gap = 0.2, vert_loc = 0, xcenter 
 
             
     return _hierarchy_pos(G, root, width, vert_gap, vert_loc, xcenter)
+
+def get_tree_dataframe():
+    big_list = []
+    #depth = 2, 4, 6
+    #branch = 3, 5, 7
+    for i in range(3):
+        for j in [3,5,7]:
+            big_list.append([2*(i+1), j, 0, 0, 0, 0])
+    df = pd.DataFrame(big_list, columns=['depth','branch','ollivier','forman','sectional','number of nodes'])
+    return df
+
+def get_balanced_tree_dataframe():
+    big_list = []
+    #height= 2, 4, 6
+    #r-ary = 2, 3, 4
+    for i in range(3):
+        for j in [2,3,4]:
+            big_list.append([2*(i+1), j, 0, 0, 0, 0])
+    df = pd.DataFrame(big_list, columns=['height','r-ary','ollivier','forman','sectional','number of nodes'])
+    return df
+
+def get_star_graph_dataframe():
+    big_list = []
+    for i in [100, 1000, 10000]:
+        big_list.append([i, 0, 0, 0])
+    df = pd.DataFrame(big_list, columns=['number of nodes','ollivier','forman','sectional'])
+    return df
+
+def get_scale_free_dataframe():
+    big_list = []
+    beta_list =beta_list = np.linspace(0,1,10,endpoint=False)
+    beta_list = np.delete(beta_list,[0])
+    for i in [100, 1000, 10000]:
+        for j in beta_list:
+            big_list.append([i, j, (1-j)/2, 0, 0, 0])
+    df = pd.DataFrame(big_list, columns=['number of nodes','beta','alpha gamma','ollivier','forman','sectional'])
+    return df
+
+def get_bipartite_dataframe():
+    big_list = []
+    small_list = [10, 100, 1000]
+    for i in range(3):
+        for j in range(3-i):
+            index = i+j
+            big_list.append([small_list[i], small_list[index], 0, 0, 0, 0])
+    df = pd.DataFrame(big_list, columns=['number of nodes in first bipartite set', 'number of nodes in second bipartite set','ollivier','forman','sectional','total number of nodes'])
+    return df
+
+def get_dag_dataframe():
+    big_list = []
+    for i in [10, 100, 1000, 2000]:
+        big_list.append([i, 0, 0, 0])
+    df = pd.DataFrame(big_list, columns=['number of nodes','ollivier','forman','sectional'])
+    return df
+
+def from_multigraph_to_graph(M):
+    G = nx.DiGraph()
+    for edge in M.edges():
+        if edge[0]==edge[1]:
+            continue
+        if edge in G.edges():
+            continue
+        G.add_edge(*edge)
+    return G

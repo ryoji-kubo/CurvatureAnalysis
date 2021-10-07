@@ -5,7 +5,7 @@ import random
 from utils import *
 
 
-def generate_tree(depth = 2, maxbranch = 3, seed = None, create_using = None, draw = False, save_file = 'hierarchy.png'):
+def generate_tree(depth = 2, maxbranch = 3, create_using = None, seed = None, draw = False, save_file = 'hierarchy.png'):
     '''
     generate a balanced tree with maximum depth and maximum branching factor (the actual branching factor will be random for each vertex)
     if creating a directed balanced tree, set create_using = nx.DiGraph
@@ -29,3 +29,8 @@ def generate_tree(depth = 2, maxbranch = 3, seed = None, create_using = None, dr
         plt.savefig(save_file)
     return G
 
+def get_random_dag(n, p = 0.5, seed = None):
+  '''generates random DAGs, taken from https://gist.github.com/flekschas/0ea70dec4d92bc706e61'''
+  random_graph = nx.fast_gnp_random_graph(n, p, directed=True, seed = seed)
+  random_dag = nx.DiGraph([(u, v) for (u, v) in random_graph.edges() if u < v])
+  return random_dag
