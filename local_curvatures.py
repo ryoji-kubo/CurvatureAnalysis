@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('--nargs', nargs='*', default='all', help = 'tree, balanced_tree')
 parser.add_argument('--seed', type=int, default=None)
+parser.add_argument('--runs', type=int, default=1)
 def get_ollivier_curvature(G):
     orc = OllivierRicci(G, alpha = 0.5, verbose="INFO")
     orc.compute_ricci_curvature()
@@ -111,6 +112,38 @@ def sample(G, n_samples):
     
     return curvature
 
+def sample_2(G, n_samples):
+        nodes = list(G)
+        nodes.sort()
+        curvature = []
+        max_iter = 10000
+        iter = 0
+        idx = 0
+        while idx < n_samples:
+            # if in max_iter we cannot sample a triangle check the diameter of the
+            # component, must be at least 3 to sample triangles
+            if iter == max_iter:
+                return None
+                #d = nx.algorithms.distance_measures.diameter(G)
+                #if d < 3: return None
+            iter = iter + 1
+            m = random.choice(nodes)
+            ngh = list(G.neighbors(m))
+            if len(ngh) < 2: continue
+            b = random.choice(ngh)
+            c = random.choice(ngh)
+            if b == c: continue
+            # sample reference node
+            a = random.choice([l for l in nodes if l not in [m,b,c]])
+            bc = len(nx.shortest_path(G, source=b, target=c)) - 1
+            ab = len(nx.shortest_path(G, source=a, target=b)) - 1
+            ac = len(nx.shortest_path(G, source=a, target=c)) - 1
+            am = len(nx.shortest_path(G, source=a, target=m)) - 1
+            curv = (am**2 + bc**2/4 - (ab**2 + ac**2) / 2) / (2 * am)
+            curvature.append(curv)
+            idx = idx + 1
+        return curvature
+
 def sectional_curvature(G):
     components = [G.subgraph(c) for c in nx.connected_components(G)]
     nodes = [c.number_of_nodes()**3 for c in components]
@@ -122,7 +155,8 @@ def sectional_curvature(G):
         weight = weights[idx]
         n_samples = int(1000 * weight)
         if n_samples > 0 and c.number_of_nodes() > 3:
-            curv = sample(c, n_samples)
+            # curv = sample(c, n_samples)
+            curv = sample_2(c, n_samples)
             if curv is not None:
                 curvs.extend(curv)
     
@@ -231,7 +265,7 @@ if __name__ == '__main__':
                     plt.figure()
                     plt.title(f'Scale Free with Size {D.order()} and Beta {beta}')
                     nx.draw(D, node_size=50)
-                    plt.savefig(f'Figures/Scale_Free/Scale Free with Size {D.order()} and Beta {beta}.png')
+                    plt.savefig(f'Figures/Scale_Free/2/Scale Free with Size {D.order()} and Beta {beta}.png')
                 print(f'Generated Scale Free, Size: {D.order()} and Beta {beta}')
 
                 ##  Calculate the local curvatures
@@ -259,7 +293,7 @@ if __name__ == '__main__':
                     sectional_avg = np.mean(np.array(sectional_list))
                     df.loc[index, 'sectional']=sectional_avg
                     print("Average sectional: ", sectional_avg)
-        df.to_csv('Results/Scale_Free/scale_free_curvature.csv', index=False)
+            df.to_csv('Results/Scale_Free/scale_free_curvature_2.csv', index=False)
 
     if 'bipartite' in args.nargs or 'all' in args.nargs:
         df = get_bipartite_dataframe()
@@ -290,28 +324,74 @@ if __name__ == '__main__':
         df = get_dag_dataframe()
         for index, row in df.iterrows():
             p = row['p']
+            n = int(row['number of nodes'])
             print(f'{index+1}/{len(df.index)} rows')
             ollivier_list = []
             forman_list = []
             sectional_list = []
             for i in range(args.runs):
                 print(f'{i+1}/{args.runs} completed')
-                G = get_random_dag(row['number of nodes'], seed = args.seed)
+                G = get_random_dag(n, p, seed = args.seed)
                 U = G.to_undirected()
                 if U.order()<=500 and i==0:
                     plt.figure()
                     plt.title(f'DAG with Size {G.order()} and p {p}')
                     nx.draw(G, node_size=50)
-                    plt.savefig(f'Figures/DAG/DAG with Size {G.order()} and p {p}.png')
+                    plt.savefig(f'Figures/DAG/2/DAG with Size {G.order()} and p {p}.png')
                 print(f'Generated DAG, Size: {G.order()}')
                 ##  Calculate the local curvatures
+                # ollivier = get_ollivier_curvature(G)
+                # print("Average ollivier: ", ollivier)
+                # ollivier_list.append(ollivier)
+                # if i == args.runs-1:
+                #     ollivier_avg = np.mean(np.array(ollivier_list))
+                #     df.loc[index, 'ollivier']=ollivier_avg
+                #     print("ollivier: ", ollivier_avg)
+                # forman = get_forman_curvature(G)
+                # print("forman: ", forman)
+                # forman_list.append(forman)
+                # if i == args.runs-1:
+                #     forman_avg = np.mean(np.array(forman_list))
+                #     df.loc[index, 'forman']=forman_avg
+                #     print("Average forman: ", forman_avg)
+                #   Sectional Curvature estimation based on our implementation for HyperKGQA
+                sectional, _ = sectional_curvature(U)
+                print("sectional: ", sectional)
+                sectional_list.append(sectional)
+                if i == args.runs-1:
+                    sectional_avg = np.mean(np.array(sectional_list))
+                    df.loc[index, 'sectional']=sectional_avg
+                    print("Average sectional: ", sectional_avg)
+            df.to_csv('Results/DAG/dag_curvature_2.csv', index=False)
+
+
+    if 'random_digraph' in args.nargs or 'all' in args.nargs:
+        df = get_random_digraph_dataframe()
+        for index, row in df.iterrows():
+            n = int(row['number of nodes'])
+            m = int(row['number of edges'])
+            print(f'{index+1}/{len(df.index)} rows')
+            ollivier_list = []
+            forman_list = []
+            sectional_list = []
+            for i in range(args.runs):
+                print(f'{i+1}/{args.runs} completed')
+                G = nx.gnm_random_graph(n, m, seed = args.seed, directed=True)
+                U = G.to_undirected()
+                if U.order()<=500 and i==0:
+                    plt.figure()
+                    plt.title(f'Random DiGraph with Size {G.order()} and edges {m}')
+                    nx.draw(G, node_size=50)
+                    plt.savefig(f'Figures/Random_DiGraph/2/Random DiGraph with Size {G.order()} and edges {m}.png')
+                print(f'Generated Random DiGraph, Size: {G.order()} Edge: {m}')
+                ##  Calculate the local curvatures
                 ollivier = get_ollivier_curvature(G)
-                print("Average ollivier: ", ollivier)
+                print("ollivier: ", ollivier)
                 ollivier_list.append(ollivier)
                 if i == args.runs-1:
                     ollivier_avg = np.mean(np.array(ollivier_list))
                     df.loc[index, 'ollivier']=ollivier_avg
-                    print("ollivier: ", ollivier_avg)
+                    print("Average ollivier: ", ollivier_avg)
                 forman = get_forman_curvature(G)
                 print("forman: ", forman)
                 forman_list.append(forman)
@@ -327,5 +407,7 @@ if __name__ == '__main__':
                     sectional_avg = np.mean(np.array(sectional_list))
                     df.loc[index, 'sectional']=sectional_avg
                     print("Average sectional: ", sectional_avg)
-        df.to_csv('Results/DAG/dag_curvature.csv', index=False)
+            df.to_csv('Results/Random_DiGraph/random_digraph_curvature_2.csv', index=False)
+            
 
+        

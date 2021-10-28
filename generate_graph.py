@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import random
+from networkx.algorithms.dag import *
 
 from utils import *
 
@@ -30,7 +31,20 @@ def generate_tree(depth = 2, maxbranch = 3, create_using = None, seed = None, dr
     return G
 
 def get_random_dag(n, p = 0.5, seed = None):
-  '''generates random DAGs, taken from https://gist.github.com/flekschas/0ea70dec4d92bc706e61'''
-  random_graph = nx.fast_gnp_random_graph(n, p, directed=True, seed = seed)
-  random_dag = nx.DiGraph([(u, v) for (u, v) in random_graph.edges() if u < v])
-  return random_dag
+    '''generates random DAGs, taken from https://gist.github.com/flekschas/0ea70dec4d92bc706e61'''
+    random_graph = nx.fast_gnp_random_graph(n, p, directed=True, seed = seed)
+    random_dag = nx.DiGraph([(u, v) for (u, v) in random_graph.edges() if u < v])
+    random.seed()
+    while random_dag.order() < n:
+        node1 = random.randint(0,random_graph.order())
+        node2 = random.randint(0,random_graph.order())
+        while node1 == node2 or (node1, node2) in random_dag.edges():
+            node1 = random.randint(0,random_graph.order())
+            node2 = random.randint(0,random_graph.order())
+        random_dag.add_edge(node1, node2)
+        if is_directed_acyclic_graph(random_dag)==False:
+            random_dag.remove_edge(node1, node2)
+    while random_dag.order() > n:
+        node = random.randint(0,random_dag.order())
+        random_dag.remove_node(node)
+    return random_dag
