@@ -123,7 +123,7 @@ def get_dag_dataframe():
     big_list = []
     p_list = np.linspace(0,1,10,endpoint=False)
     p_list = np.delete(p_list,[0])
-    for i in [1000]:
+    for i in [10,20,100,500]:
         for j in p_list:
             big_list.append([i, j, 0, 0, 0])
     df = pd.DataFrame(big_list, columns=['number of nodes','p','ollivier','forman','sectional'])

@@ -337,7 +337,7 @@ if __name__ == '__main__':
                     plt.figure()
                     plt.title(f'DAG with Size {G.order()} and p {p}')
                     nx.draw(G, node_size=50)
-                    plt.savefig(f'Figures/DAG/2/DAG with Size {G.order()} and p {p}.png')
+                    plt.savefig(f'Figures/DAG/3/DAG with Size {G.order()} and p {p}.png')
                 print(f'Generated DAG, Size: {G.order()}')
                 ##  Calculate the local curvatures
                 # ollivier = get_ollivier_curvature(G)
@@ -362,7 +362,7 @@ if __name__ == '__main__':
                     sectional_avg = np.mean(np.array(sectional_list))
                     df.loc[index, 'sectional']=sectional_avg
                     print("Average sectional: ", sectional_avg)
-            df.to_csv('Results/DAG/dag_curvature_2.csv', index=False)
+            df.to_csv('Results/DAG/dag_curvature_3.csv', index=False)
 
 
     if 'random_digraph' in args.nargs or 'all' in args.nargs:
