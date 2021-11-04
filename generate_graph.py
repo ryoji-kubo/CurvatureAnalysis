@@ -48,3 +48,38 @@ def get_random_dag(n, p = 0.5, seed = None):
         node = random.randint(0,random_dag.order())
         random_dag.remove_node(node)
     return random_dag
+
+def generate_poisson_tree(n, rate = 1, create_using = nx.DiGraph):
+    G = nx.empty_graph(1,create_using)
+    leaves = [0]
+    while G.order() < n:
+        next_leaves = []
+        branches = np.random.poisson(lam=rate, size=(len(leaves)))
+        for index, leaf in enumerate(leaves):
+            branch = int(branches[index])
+            if branch >= 1:
+                children = [G.order()+i for i in range(branch)]
+                G.add_edges_from([(leaf,child) for child in children])
+                next_leaves.extend(children)
+        if len(next_leaves) != 0:
+            leaves = next_leaves
+    random.seed()
+    leaves = [x for x in G.nodes() if G.out_degree(x)==0 and G.in_degree(x)==1]
+    while G.order()>n:
+        node = random.choice(leaves)
+        leaves.remove(node)
+        G.remove_node(node)
+    return G
+
+def generate_random_tree(n, new_edges, create_using = nx.DiGraph, seed = None):
+    G = nx.random_tree(n = n, seed = seed, create_using = create_using)
+    e = 0
+    while e < new_edges:
+        node1 = random.choice(list(G.nodes()))
+        node2 = random.choice(list(G.nodes()))
+        while node1 == node2 or (node1, node2) in G.edges():
+            node1 = random.choice(list(G.nodes()))
+            node2 = random.choice(list(G.nodes()))
+        G.add_edge(node1, node2)
+        e+=1
+    return G

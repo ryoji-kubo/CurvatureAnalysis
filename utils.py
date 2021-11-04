@@ -2,6 +2,8 @@ import networkx as nx
 import random
 import pandas as pd
 import numpy as np
+from networkx.algorithms.dag import *
+
 """
 retrieved from: Aug 2nd 2021
 https://newbedev.com/can-one-get-hierarchical-graphs-from-networkx-with-python-3
@@ -103,7 +105,7 @@ def get_scale_free_dataframe():
     big_list = []
     beta_list = np.linspace(0,1,10,endpoint=False)
     beta_list = np.delete(beta_list,[0])
-    for i in [1000]:
+    for i in [10, 20, 100, 500, 1000, 10000]:
         for j in beta_list:
             big_list.append([i, j, (1-j)/2, 0, 0, 0])
     df = pd.DataFrame(big_list, columns=['number of nodes','beta','alpha gamma','ollivier','forman','sectional'])
@@ -123,7 +125,7 @@ def get_dag_dataframe():
     big_list = []
     p_list = np.linspace(0,1,10,endpoint=False)
     p_list = np.delete(p_list,[0])
-    for i in [10,20,100,500]:
+    for i in [10,20,100,500,1000]:
         for j in p_list:
             big_list.append([i, j, 0, 0, 0])
     df = pd.DataFrame(big_list, columns=['number of nodes','p','ollivier','forman','sectional'])
@@ -133,6 +135,7 @@ def get_random_digraph_dataframe():
     big_list = []
     nodes = [20,100,500,1000]
     for n in nodes:
+        # edge_list created to get the number of edges spaced out from n/10*(n/10 - 1) ~ nC2 
         edge_list = np.linspace(n/10, n, num=10, dtype= int)
         # print(f'{n}: ', edge_list)
         edge_list = 1/2*np.multiply(edge_list,edge_list-1)
@@ -142,7 +145,30 @@ def get_random_digraph_dataframe():
     columns = ['number of nodes','number of edges','ollivier','forman','sectional']
     df = pd.DataFrame(big_list, columns=columns)
     return df
-    
+
+def get_dag_tree_dataframe():
+    big_list = []
+    nodes = [20,100,500,1000]
+    rates = [1,5,10]
+    for n in nodes:
+        for r in rates:
+            edge_list = np.linspace(n/10, n, num=10, dtype= int)
+            for e in edge_list:
+                big_list.append([n,r,e,0,0,0])
+    columns = ['number of nodes','rate','new edges','ollivier','forman','sectional']
+    df = pd.DataFrame(big_list, columns=columns)
+    return df
+
+def get_random_tree_dataframe():
+    big_list = []
+    nodes = [20,100,500,1000]
+    for n in nodes:
+        edge_list = np.linspace(n/10, n, num=10, dtype= int)
+        for e in edge_list:
+            big_list.append([n,e,0,0,0])
+    columns = ['number of nodes','new edges','ollivier','forman','sectional']
+    df = pd.DataFrame(big_list, columns=columns)
+    return df
 
 def from_multigraph_to_graph(M):
     G = nx.DiGraph()
@@ -154,29 +180,19 @@ def from_multigraph_to_graph(M):
         G.add_edge(*edge)
     return G
 
-# def temporary_save(ollivier_list, forman_list, sectional_list, parameters_list, filename):
-#     with open(filename,'w') as file:
-#         for index, param in enumerate(parameters_list):
-#             if index == len(parameters_list)-1:
-#                 file.write(param,'\n')
-#             else:
-#                 file.write(param,' ')
-#         for index, ollivier in enumerate(ollivier_list):
-#             if index == len(ollivier_list)-1:
-#                 file.write(ollivier,'\n')
-#             else:
-#                 file.write(ollivier,'\n')
-#         for index, forman in enumerate(forman_list):
-#             if index == len(forman_list)-1:
-#                 file.write(forman,'\n')
-#             else:
-#                 file.write(forman,'\n')
-#         for index, sectional in enumerate(sectional_list):
-#             if index == len(sectional_list)-1:
-#                 file.write(sectional,'\n')
-#             else:
-#                 file.write(sectional,'\n')
-        
-        
-            
-
+def add_random_edges_dag(G,n):
+    if is_directed_acyclic_graph(G) == False:
+        raise ValueError('Expected DAG')
+    e = 0
+    while e < n:
+        node1 = random.choice(list(G.nodes()))
+        node2 = random.choice(list(G.nodes()))
+        while node1 == node2 or (node1, node2) in G.edges():
+            node1 = random.choice(list(G.nodes()))
+            node2 = random.choice(list(G.nodes()))
+        G.add_edge(node1, node2)
+        e+=1
+        if is_directed_acyclic_graph(G)==False:
+            G.remove_edge(node1, node2)
+            e-=1
+    return G
